@@ -9,13 +9,6 @@ class ButtonStatus {
   final bool selected;
 
   ButtonStatus({required this.title, required this.selected});
-
-  factory ButtonStatus.fromJson(Map<String, dynamic> json) {
-    return ButtonStatus(
-      title: json['title'] as String,
-      selected: json['selected'] as bool,
-    );
-  }
 }
 
 Future<ButtonStatus> getButtonStatus() async {
@@ -30,7 +23,25 @@ Future<ButtonStatus> getButtonStatus() async {
   }
 
   final json = jsonDecode(response.body) as Map<String, dynamic>;
-  return ButtonStatus.fromJson(json);
+  return ButtonStatus(
+    title: json['title'] as String,
+    selected: json['selected'] as bool,
+  );
+}
+
+Future<void> updateButtonStatus(bool newSelected) async {
+  final url = Uri.parse(
+    'https://y2t3-md-default-rtdb.asia-southeast1.firebasedatabase.app/.json',
+  );
+
+  final response = await http.patch(
+    url,
+    body: jsonEncode({'selected': newSelected}),
+  );
+
+  if (response.statusCode != 200) {
+    throw Exception('Failed to update (HTTP ${response.statusCode})');
+  }
 }
 
 class ButtonScreen extends StatefulWidget {
@@ -69,10 +80,20 @@ class _ButtonScreenState extends State<ButtonScreen> {
     }
   }
 
-  void _toggleSelected() {
+  void _toggleSelected() async {
+    final newValue = !selected;
     setState(() {
-      selected = !selected;
+      selected = newValue;
     });
+
+    try {
+      await updateButtonStatus(newValue);
+    } catch (e) {
+      setState(() {
+        selected = !newValue;
+        errorMessage = e.toString();
+      });
+    }
   }
 
   @override

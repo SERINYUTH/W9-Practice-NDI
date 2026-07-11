@@ -9,9 +9,11 @@ class TodoDto {
 
   static Todo fromJson(String id, Map<String, dynamic> json) {
     // Assert the map contains the keys  title and completed with the right data types
+    assert(json.containsKey(title));
+    assert(json.containsKey(completed));
 
     // Return the right todo object by reading the json map
-    return Todo(id: "fake", title: "fake", completed: false);
+    return Todo(id: id, title: json[title] as String, completed: json[completed] as bool);
   }
 
   static Map<String, dynamic> toJson(Todo todo) {
